@@ -147,7 +147,7 @@ olympics_top20 <- read.csv("https://raw.githubusercontent.com/jgscott/ECO395M/ma
 
 ```
 
-##Part(A)
+## Part(A)
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
 
 data = olympics_top20 %>%
@@ -160,7 +160,7 @@ quantile(data1, probs = c(0,0.95,1))
 
 the 95th percentile of heights for female competitors across all Athletics events is 183
 
-##Part(B)
+## Part(B)
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 data<- olympics_top20 %>%
@@ -180,7 +180,7 @@ data2 %>%
 
 The event had the greatest variability in competitor's heights is Rowing Women's Coxed Fours
 
-##Part(C)
+## Part(C)
 ```{r, echo=FALSE,message=FALSE, warning=FALSE}
 
 olympics_top20 %>%

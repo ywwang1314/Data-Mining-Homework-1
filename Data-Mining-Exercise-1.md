@@ -231,7 +231,7 @@ We concluded that the most popular song is “Radioactive”.
 
 # Question 3
 
-\#\#Part(A)
+## Part(A)
 
     ##   0%  95% 100% 
     ##  150  183  193
@@ -239,7 +239,7 @@ We concluded that the most popular song is “Radioactive”.
 the 95th percentile of heights for female competitors across all
 Athletics events is 183
 
-\#\#Part(B)
+## Part(B)
 
     ## # A tibble: 1 × 3
     ##   event                          n sd_height
@@ -249,7 +249,8 @@ Athletics events is 183
 The event had the greatest variability in competitor’s heights is Rowing
 Women’s Coxed Fours
 
-\#\#Part(C)
+## Part(C)
+
 ![](Data-Mining-Exercise-1_files/figure-markdown_strict/unnamed-chunk-15-1.png)
 From the plot, the average age of swimmers changed a lot before 1950.
 After that, the average age increased steadily and becomes stable
