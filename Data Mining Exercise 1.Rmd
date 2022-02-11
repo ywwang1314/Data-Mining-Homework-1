@@ -1,0 +1,273 @@
+---
+title: "Data Mining Exercise 1"
+author: Shankai Liao  Xing Xin  Yiwen Wang
+output: md_document
+---
+Author:
+
+Shankai Liao
+
+Xing Xin
+
+Yiwen Wang
+
+# Question 1
+
+```{r setup, include=FALSE}
+  knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(mosaic)
+library(curl)
+
+abia = read.csv('https://raw.githubusercontent.com/jgscott/ECO395M/master/data/ABIA.csv')
+summary(abia)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+abia %>% 
+  group_by(DayOfWeek) %>%
+  summarize(favstats(DepDelay, na.rm = TRUE)) 
+
+```
+
+In terms of the averages, delays are minimized on Wednesday and Saturday. According to the standard deviation, Saturday is more "stable"
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+by_airline_daily = abia %>%
+  group_by(DayOfWeek, UniqueCarrier) %>%
+  summarize(count = n(), mean_dep_delay = mean(DepDelay, na.rm = TRUE)) 
+
+by_airline_daily
+
+```
+
+``` {r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(by_airline_daily) +
+  geom_col(aes(x = factor(DayOfWeek), y = mean_dep_delay)) +
+  facet_wrap(~UniqueCarrier)
+```
+The change of delays is related to airlines. "US" airline has the minimized delays.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+abia %>%
+  group_by(Month) %>%
+  summarize(favstats(DepDelay, na.rm = TRUE))
+```
+
+In 2008, September and October are the best time to fly in terms to the average.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+by_des_monthly = abia %>%
+  filter(Dest == c('AUS', 'HOU', 'DEN')) %>%
+  group_by(Month, Dest) %>%
+  summarize(count = n(), mean_dep_delay = mean(DepDelay, na.rm = TRUE))
+
+by_des_monthly
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(by_des_monthly) +
+  geom_col(aes(x = factor(Month), y = mean_dep_delay)) +
+  facet_wrap(~Dest) 
+```
+
+Through the plot, we could conclude that the less delay takes place in the Denver international airport, but it is unstable. Specifically, in March and June it can happen much more delay.
+
+
+# Question 2
+
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(modelr)
+library(rsample)
+library(mosaic)
+
+bboard = read.csv("https://raw.githubusercontent.com/jgscott/ECO395M/master/data/billboard.csv")
+head(bboard) 
+```
+
+## Part(A)
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+bboard %>%
+  group_by(performer, song_id) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count)) %>%
+  head(10)
+```
+We concluded that the most popular song is "Radioactive".
+
+## Part(B)
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+by_year = bboard %>%
+  filter(year != 1958 & year != 2021) %>%  
+  group_by(year) %>% 
+  summarize(diversity = length(unique(song_id, fromLast = FALSE)))
+by_year
+
+ggplot(by_year, aes(x = year, y = diversity)) +
+  geom_line() +
+  geom_point() +
+  labs(title = " The musical diversity changing over time", x = "Year", y = " The number of unique songs appearing in any week") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+## Part(C)
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+ten_week = bboard %>%
+  group_by(performer, song_id) %>%
+  summarise(hit = n(), .groups = 'drop') %>%
+  filter(hit >= 10) %>%
+  group_by(performer) %>%
+  summarize(times = n()) %>%
+  filter(times >= 30)
+ten_week
+
+ggplot(ten_week, aes(x = fct_reorder(performer, times), y = times)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Ten-week hit", y = "Performer")
+```
+
+
+# Question 3
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(curl)
+olympics_top20 <- read.csv("https://raw.githubusercontent.com/jgscott/ECO395M/master/data/olympics_top20.csv")
+
+```
+
+##Part(A)
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+
+data = olympics_top20 %>%
+     filter(sex == 'F', sport == 'Athletics') %>%
+      select(height)
+data1<-data$height
+
+quantile(data1, probs = c(0,0.95,1))
+```
+
+the 95th percentile of heights for female competitors across all Athletics events is 183
+
+##Part(B)
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+data<- olympics_top20 %>%
+  filter(sex == 'F') %>%
+  select(height,event)
+
+data1 <- data %>%  
+  group_by (event) %>% 
+  summarise (n=n(),sd_height=sd(height)) 
+
+data2 <-data1[order(-data1$sd_height),]
+
+data2 %>%
+  head(1)
+```
+
+
+The event had the greatest variability in competitor's heights is Rowing Women's Coxed Fours
+
+##Part(C)
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+
+olympics_top20 %>%
+  filter (sport == "Swimming") %>%
+  group_by (sex,year) %>%
+  summarize (avg_age = mean(age)) %>%
+  ggplot(aes(x=year, y=avg_age, color=sex)) +
+  geom_line()+
+  geom_point() 
+
+```
+From the plot, the average age of swimmers changed a lot before 1950. After that, the average age increased steadily and becomes stable between 22-24.
+For male swimmers, it had a big change and even get 32 in 1924 but becomes stable after 1950. It increased around 24 recently.
+For female swimmers, it's a small number from 1924 and the average age increased about 22 in 2020s.
+
+# Question 4
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(kknn)
+set.seed(2022)
+sclass <- read.csv("https://raw.githubusercontent.com/jgscott/ECO395M/master/data/sclass.csv")
+df_350 <- sclass%>%
+  filter(trim=="350")
+df_65 <- sclass%>%
+  filter(trim=="65 AMG")
+```
+
+### 1.Trim = 350 AMG
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+n <- nrow(df_350)
+index <- sample(1:n,n*0.7,replace = F)
+train <- df_350[index,]
+test <- df_350[-index,]
+RMSE <- c()
+values <- c(2:25)
+for(k in values){
+  model <- kknn(price~mileage,train,test,k=k)
+  RMSE <- c(RMSE,sqrt(mean((model$fitted.values - test$price)^2)))
+}
+ggplot()+
+  geom_point(aes(values,RMSE),col="red")+
+  geom_line(aes(values,RMSE))+
+  theme_bw()+
+  labs(x="K",title="Line plot of RMSE for diefferent k on Trim = 350 AMG")
+```
+As K increases, the RMSE of the test set decreases gradually. When K≥18, the RMSE remained basically unchanged. So the optimal K value is 18.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+model <- kknn(price~mileage,train,test,k=18)
+ggplot()+
+  geom_point(aes(test$mileage,model$fitted.values),col="red")+
+  theme_bw()+
+  labs(x="Mileage",y="Fitted values",title="Scatter plot of x vs fitted on Trim = 350 AMG")
+```
+
+### 2.Trim = 65 AMG
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+n <- nrow(df_65)
+index <- sample(1:n,n*0.7,replace = F)
+train <- df_65[index,]
+test <- df_65[-index,]
+RMSE <- c()
+values <- c(2:20)
+for(k in values){
+  model <- kknn(price~mileage,train,test,k=k)
+  RMSE <- c(RMSE,sqrt(mean((model$fitted.values - test$price)^2)))
+}
+ggplot()+
+  geom_point(aes(values,RMSE),col="steelblue")+
+  geom_line(aes(values,RMSE))+
+  theme_bw()+
+  labs(x="K",title="Line plot of RMSE for diefferent k on Trim = 65 AMG")
+```
+
+As K increases, the RMSE of the test set first decreases and then increases. When K=9, the RMSE value is the smallest. Therefore, the optimal K value is 9.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+model <- kknn(price~mileage,train,test,k=9)
+ggplot()+
+  geom_point(aes(test$mileage,model$fitted.values),col="steelblue")+
+  theme_bw()+
+  labs(x="Mileage",y="Fitted values",title="Scatter plot of x vs fitted on Trim = 65 AMG")
+```
+
+350 AMG yields a larger optimal value of K.
+Because the 350 AMG level has significantly more data than the 65 AMG level.
+
